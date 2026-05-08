@@ -1,5 +1,5 @@
-flask==3.0.0
-flask-socketio==5.3.6
-pyserial==3.5
-eventlet==0.33.3
-python-dotenv==1.0.0
+flask
+flask-socketio
+flask-cors
+pyserial
+python-dotenv
