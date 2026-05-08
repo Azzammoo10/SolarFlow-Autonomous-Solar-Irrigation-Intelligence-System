@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\backend\app.py", line 23, in <module>
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\flask_socketio\__init__.py", line 187, in __init__
+    self.init_app(app, **kwargs)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\flask_socketio\__init__.py", line 243, in init_app
+    self.server = socketio.Server(**self.server_options)
+                  ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\socketio\base_server.py", line 34, in __init__
+    self.eio = self._engineio_server_class()(**engineio_options)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\engineio\base_server.py", line 94, in __init__
+    raise ValueError('Invalid async_mode specified')
+ValueError: Invalid async_mode specified
+Traceback (most recent call last):
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\backend\app.py", line 23, in <module>
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\flask_socketio\__init__.py", line 187, in __init__
+    self.init_app(app, **kwargs)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\flask_socketio\__init__.py", line 243, in init_app
+    self.server = socketio.Server(**self.server_options)
+                  ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\socketio\base_server.py", line 34, in __init__
+    self.eio = self._engineio_server_class()(**engineio_options)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AZZAM\Downloads\Code Arduino\Code Arduino\.venv\Lib\site-packages\engineio\base_server.py", line 94, in __init__
+    raise ValueError('Invalid async_mode specified')
+ValueError: Invalid async_mode specified

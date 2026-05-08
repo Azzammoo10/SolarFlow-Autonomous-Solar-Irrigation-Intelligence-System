@@ -1,0 +1,36 @@
+[Fri 05/08/2026 16:58:55.25] [INFO] --- Starting Setup Script --- 
+[Fri 05/08/2026 16:58:55.37] [OK] Python 3.14.0 detected 
+[Fri 05/08/2026 16:58:55.75] [INFO] Creating .venv 
+[Fri 05/08/2026 16:59:16.10] [INFO] Running pip install 
+[Fri 05/08/2026 16:59:39.14] [OK] Dependencies ready 
+[Fri 05/08/2026 16:59:39.24] [WARN] No Arduino found, switching to DEMO 
+[Fri 05/08/2026 17:02:08.23] [INFO] --- Starting Setup Script --- 
+[Fri 05/08/2026 17:02:08.34] [OK] Python 3.14.0 detected 
+[Fri 05/08/2026 17:02:10.51] [INFO] Running pip install 
+[Fri 05/08/2026 17:02:14.42] [OK] Dependencies ready 
+[Fri 05/08/2026 17:02:14.52] [WARN] No Arduino found, switching to DEMO 
+[Fri 05/08/2026 17:02:14.52] [INFO] Entering Phase 4 
+[Fri 05/08/2026 17:02:36.40] [INFO] --- Starting Setup Script --- 
+[Fri 05/08/2026 17:02:36.50] [OK] Python 3.14.0 detected 
+[Fri 05/08/2026 17:02:38.60] [INFO] Running pip install 
+[Fri 05/08/2026 17:02:42.43] [OK] Dependencies ready 
+[Fri 05/08/2026 17:02:42.54] [WARN] No Arduino found, switching to DEMO 
+[Fri 05/08/2026 17:02:42.54] [INFO] Entering Phase 4 
+[Fri 05/08/2026 17:02:42.59] [OK] Config created 
+[Fri 05/08/2026 17:02:42.59] [INFO] Entering Phase 5 
+[Fri 05/08/2026 17:03:15.35] [INFO] --- Starting Setup Script --- 
+[Fri 05/08/2026 17:03:15.45] [OK] Python 3.14.0 detected 
+[Fri 05/08/2026 17:03:17.60] [INFO] Running pip install 
+[Fri 05/08/2026 17:03:21.39] [OK] Dependencies ready 
+[Fri 05/08/2026 17:03:21.51] [WARN] No Arduino found, switching to DEMO 
+[Fri 05/08/2026 17:03:21.52] [INFO] Entering Phase 4 
+[Fri 05/08/2026 17:03:21.53] [INFO] Using existing config 
+[Fri 05/08/2026 17:03:21.54] [INFO] Entering Phase 5 
+[Fri 05/08/2026 17:03:32.63] [INFO] --- Starting Setup Script --- 
+[Fri 05/08/2026 17:03:32.74] [OK] Python 3.14.0 detected 
+[Fri 05/08/2026 17:03:34.81] [INFO] Running pip install 
+[Fri 05/08/2026 17:03:38.55] [OK] Dependencies ready 
+[Fri 05/08/2026 17:03:38.71] [WARN] No Arduino found, switching to DEMO 
+[Fri 05/08/2026 17:03:38.71] [INFO] Entering Phase 4 
+[Fri 05/08/2026 17:03:38.72] [INFO] Using existing config 
+[Fri 05/08/2026 17:03:38.73] [INFO] Entering Phase 5 
