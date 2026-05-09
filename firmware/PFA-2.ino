@@ -90,19 +90,24 @@ String getScenarioName(int s) {
 // ===== SERIAL COMMAND PARSER =====
 // Handles commands from the web dashboard (manual mode)
 bool webPompe = false, webVanne = false, webVent = false, webChauf = false, webOmbre = false;
+bool webModeOverride = false; // true = mode controlled by web, false = use BTN_MODE
+bool webModeAuto = true;      // effective mode when webModeOverride is true
 
 void parseCmd(String cmd) {
   cmd.trim();
-  if      (cmd == "POMPE_ON")   webPompe  = true;
-  else if (cmd == "POMPE_OFF")  webPompe  = false;
-  else if (cmd == "VANNE_ON")   webVanne  = true;
-  else if (cmd == "VANNE_OFF")  webVanne  = false;
-  else if (cmd == "VENT_ON")    webVent   = true;
-  else if (cmd == "VENT_OFF")   webVent   = false;
-  else if (cmd == "CHAUFF_ON")  webChauf  = true;
-  else if (cmd == "CHAUFF_OFF") webChauf  = false;
-  else if (cmd == "OMBRE_ON")   webOmbre  = true;
-  else if (cmd == "OMBRE_OFF")  webOmbre  = false;
+  if      (cmd == "POMPE_ON")    webPompe  = true;
+  else if (cmd == "POMPE_OFF")   webPompe  = false;
+  else if (cmd == "VANNE_ON")    webVanne  = true;
+  else if (cmd == "VANNE_OFF")   webVanne  = false;
+  else if (cmd == "VENT_ON")     webVent   = true;
+  else if (cmd == "VENT_OFF")    webVent   = false;
+  else if (cmd == "CHAUFF_ON")   webChauf  = true;
+  else if (cmd == "CHAUFF_OFF")  webChauf  = false;
+  else if (cmd == "OMBRE_ON")    webOmbre  = true;
+  else if (cmd == "OMBRE_OFF")   webOmbre  = false;
+  else if (cmd == "MODE_MANUEL") { webModeOverride = true;  webModeAuto = false; }
+  else if (cmd == "MODE_AUTO")   { webModeOverride = true;  webModeAuto = true;  }
+  else if (cmd == "MODE_RESET")  { webModeOverride = false; } // hand back to BTN
   else if (cmd.startsWith("SCENARIO_")) {
     scenario = cmd.substring(9).toInt();
     if (scenario < 0 || scenario > 5) scenario = 0;
@@ -149,7 +154,7 @@ void loop() {
     parseCmd(cmd);
   }
 
-  modeAuto = digitalRead(BTN_MODE) == LOW;
+  modeAuto = webModeOverride ? webModeAuto : (digitalRead(BTN_MODE) == LOW);
   modeSimulation = digitalRead(BTN_SIM) == LOW;
 
   // SCREEN BUTTON

@@ -30,6 +30,7 @@ start_time = time.time()
 # Demo mode state — allows scenario/actuator control without Arduino
 demo_state = {
     "scenario": 0,
+    "mode": "AUTO",   # AUTO | MANUEL
     "pompe": False,
     "vanne": False,
     "vent": False,
@@ -109,20 +110,30 @@ def generate_demo_data():
     flamme = base["flamme"]
     pluie  = base["pluie"]
 
-    # Auto-mode actuator logic (mirrors firmware)
-    irrigate = int(sol < 40 and pluie == 1)
-    pompe  = irrigate
-    vanne  = irrigate
-    vent   = int(t > 28 or co2 > 70)
-    chauf  = int(t < 12)
-    ombre  = int(ldr > 70)
+    current_mode = demo_state["mode"]
 
-    # Fire override
+    if current_mode == "MANUEL":
+        # In MANUEL mode: use dashboard overrides directly
+        pompe = int(demo_state["pompe"])
+        vanne = int(demo_state["vanne"])
+        vent  = int(demo_state["vent"])
+        chauf = int(demo_state["chauf"])
+        ombre = int(demo_state["ombre"])
+    else:
+        # AUTO mode: actuator logic mirrors firmware
+        irrigate = int(sol < 40 and pluie == 1)
+        pompe  = irrigate
+        vanne  = irrigate
+        vent   = int(t > 28 or co2 > 70)
+        chauf  = int(t < 12)
+        ombre  = int(ldr > 70)
+
+    # Fire override always takes priority
     if flamme == 0:
         pompe = 0; vanne = 0; chauf = 0; vent = 1
 
     alarme = int(res < 15 or t > 35 or sol < 20 or co2 > 80 or flamme == 0)
-    mode_str = "SIM" if sc != 0 else "AUTO"
+    mode_str = current_mode if sc == 0 else "SIM"
 
     return {
         "t": t, "h": h, "sol": sol, "co2": co2, "ldr": ldr, "res": res,
@@ -217,6 +228,17 @@ def send_command(cmd):
 
     is_demo = os.getenv("ARDUINO_PORT", "DEMO") == "DEMO"
 
+    # Handle mode toggle commands — update demo_state AND forward to real Arduino
+    if cmd in ("MODE_AUTO", "MODE_MANUEL"):
+        demo_state["mode"] = "AUTO" if cmd == "MODE_AUTO" else "MANUEL"
+        # Also send to real Arduino if connected
+        if not is_demo and arduino_connected and ser:
+            try:
+                ser.write(f"{cmd}\n".encode())
+            except Exception:
+                pass
+        return jsonify({"status": "ok", "mode": demo_state["mode"]})
+
     # Handle scenario commands in both demo and real mode
     if cmd.startswith("SCENARIO_"):
         try:
@@ -278,4 +300,4 @@ if __name__ == '__main__':
     init_db()
     t = threading.Thread(target=serial_worker, daemon=True)
     t.start()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)

@@ -1,941 +1,614 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greenhouse IoT | Dashboard</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Libraries -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        :root {
-            /* Cyprus & Sand Palette */
-            --cyprus-0: #051F1B;
-            --cyprus-1: #060F0D;
-            --cyprus-2: #0B1A17;
-            --cyprus-3: #0F2420;
-            --cyprus-4: #132B27;
-            --cyprus-5: #0B3D36;
-            --cyprus-6: #1A6B5E;
-            --cyprus-7: #228070;
-            --cyprus-border: rgba(30, 61, 56, 0.4);
-            
-            --sand-0: #F0EDE5;
-            --sand-1: #FAF8F2;
-            --sand-2: #EBE8E0;
-            --sand-3: #B8B0A3;
-            --sand-4: #7A7469;
-            --sand-5: #8C7355;
-            --sand-6: #C4A882;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolarFlow | Smart Irrigation Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg:#060F0D;--bg-rgb:6,15,13;--surface:#0B1A17;--s2:#0F2420;--off:#132B27;
+  --border:rgba(30,61,56,.5);--primary:#1A6B5E;--text:#F0EDE5;--muted:#B8B0A3;
+  --faint:#7A7469;--accent:#8C7355;--ok:#2ECC71;--warn:#D4A017;--crit:#C0392B;
+  --font-ui:'DM Sans',sans-serif;--font-mono:'IBM Plex Mono',monospace;
+  --space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;
+  --text-xs:.72rem;--r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;
+}
+[data-theme="light"]{
+  --bg:#F0EDE5;--bg-rgb:240,237,229;--surface:#FAF9F6;--s2:#fff;
+  --off:#EBE8E0;--border:rgba(11,61,54,.12);--primary:#0B3D36;--text:#0B1F1C;
+  --muted:#3D6B63;--faint:#8AADA8;--accent:#C4A882;--ok:#16A34A;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-ui);background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;display:flex}
 
-            /* Design Tokens (Dark Default) */
-            --color-bg: var(--cyprus-1);
-            --color-surface: var(--cyprus-2);
-            --color-surface-2: var(--cyprus-3);
-            --color-surface-offset: var(--cyprus-4);
-            --color-border: var(--cyprus-border);
-            --color-text: var(--sand-0);
-            --color-text-muted: var(--sand-3);
-            --color-text-faint: var(--sand-4);
-            --color-primary: var(--cyprus-6);
-            --color-primary-hover: var(--cyprus-7);
-            --color-accent-warm: var(--sand-5);
-            
-            --color-critical: #C0392B;
-            --color-warning: #D4A017;
-            
-            /* Typography */
-            --font-display: 'DM Sans', sans-serif;
-            --font-body: 'IBM Plex Mono', monospace;
-            
-            /* Motion */
-            --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
-            --trans-slow: 0.7s var(--ease-fluid);
-            --trans-fast: 0.3s var(--ease-fluid);
-            
-            /* Radius */
-            --radius-outer: 24px;
-            --radius-inner: 16px;
-            --radius-control: 8px;
-            --radius-pill: 9999px;
+/* SIDEBAR */
+.sidebar{width:220px;height:100dvh;overflow-y:auto;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;scrollbar-width:none;transition:transform .3s;z-index:200}
+.sidebar::-webkit-scrollbar{display:none}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:15px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-icon{width:28px;height:28px;flex-shrink:0;background:var(--off);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center}
+.sb-logo-icon svg{width:16px;height:16px;fill:var(--primary)}
+.sb-brand{font-size:.8rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);text-decoration:none;color:var(--muted);font-size:.8rem;font-weight:500;transition:background .15s,color .15s;white-space:nowrap;cursor:pointer}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.nav-item:hover{background:var(--off);color:var(--text)}
+.nav-item.active{background:var(--primary);color:#fff}
+.sb-foot{padding:10px;border-top:1px solid var(--border);flex-shrink:0}
+.conn-card{background:var(--off);border-radius:var(--r-lg);padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.conn-row{display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--muted)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--faint);flex-shrink:0}
+.dot.online{background:var(--ok);box-shadow:0 0 8px rgba(46,204,113,.5);animation:pdot 2s infinite}
+@keyframes pdot{0%,100%{box-shadow:0 0 6px rgba(46,204,113,.4)}50%{box-shadow:0 0 14px rgba(46,204,113,.8)}}
+.mode-badge{font-family:var(--font-mono);font-size:.62rem;font-weight:500;background:var(--surface);color:var(--primary);padding:4px 8px;border-radius:var(--r-sm);text-align:center;letter-spacing:.4px}
 
-            /* Sidebar Width */
-            --sidebar-width: 240px;
+/* HAMBURGER */
+.hamburger{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:4px;margin-right:8px}
+.hamburger svg{width:20px;height:20px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150}
+.overlay.show{display:block}
 
-            /* RGB channels for rgba() usage (CSS vars can't go inside rgba directly) */
-            --color-bg-rgb: 6, 15, 13;
-        }
+/* MAIN */
+.main{flex:1;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+.header{flex-shrink:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(var(--bg-rgb),.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:100}
+.hd-left{display:flex;align-items:center}
+.hd-title{font-size:.92rem;font-weight:600}
+.hd-right{display:flex;align-items:center;gap:9px}
+.upd-chip{font-family:var(--font-mono);font-size:.63rem;color:var(--faint);background:var(--off);padding:4px 9px;border-radius:var(--r-sm)}
+.icon-btn{width:30px;height:30px;background:var(--off);border:1px solid var(--border);border-radius:var(--r-md);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:color .15s,border-color .15s;position:relative}
+.icon-btn:hover{color:var(--text);border-color:var(--primary)}
+.icon-btn svg{width:14px;height:14px}
+.badge{position:absolute;top:-4px;right:-4px;background:var(--crit);color:#fff;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 
-        [data-theme="light"] {
-            --color-bg-rgb: 240, 237, 229;
-            --color-bg: var(--sand-0);
-            --color-surface: var(--sand-1);
-            --color-surface-2: #FFFFFF;
-            --color-surface-offset: var(--sand-2);
-            --color-border: rgba(184, 176, 163, 0.3);
-            --color-text: #0B1F1C;
-            --color-text-muted: #3D6B63;
-            --color-text-faint: #8AADA8;
-            --color-primary: var(--cyprus-5);
-            --color-primary-hover: #082E29;
-            --color-accent-warm: var(--sand-6);
-        }
+/* ALERT */
+#alert-banner{flex-shrink:0;padding:6px 20px;font-size:.8rem;font-weight:600;text-align:center;display:none}
+#alert-banner.critical{display:block;background:rgba(192,57,43,.12);border-bottom:1px solid var(--crit);color:var(--crit);animation:palert 1.8s infinite}
+#alert-banner.warning{display:block;background:rgba(212,160,23,.12);border-bottom:1px solid var(--warn);color:var(--warn)}
+@keyframes palert{0%,100%{opacity:1}50%{opacity:.6}}
 
-        /* Base Styles */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            font-family: var(--font-display);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            transition: background-color var(--trans-fast);
-        }
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:var(--space-4);scrollbar-width:thin;scrollbar-color:var(--off) transparent}
 
-        /* Sidebar Architecture */
-        aside {
-            width: var(--sidebar-width);
-            background-color: var(--color-surface);
-            border-right: 1px solid var(--color-border);
-            display: flex;
-            flex-direction: column;
-            padding: 32px 0;
-            z-index: 1000;
-            transition: width var(--trans-slow);
-            position: relative;
-        }
+/* PAGE SECTIONS */
+.page{display:none}
+.page.active{display:block}
 
-        .logo-wrap {
-            padding: 0 24px;
-            margin-bottom: 48px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            overflow: hidden;
-        }
-        .logo-icon {
-            flex-shrink: 0;
-            width: 40px; height: 40px;
-            background: var(--color-surface-offset);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .logo-icon svg { width: 24px; height: 24px; fill: var(--color-primary); }
-        .logo-text { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.5px; white-space: nowrap; }
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--space-3);margin-bottom:var(--space-4)}
+.kpi-card{height:120px;padding:var(--space-3);overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);display:flex;flex-direction:column;gap:4px;position:relative;transition:border-color .2s,transform .2s}
+.kpi-card:hover{transform:translateY(-2px);border-color:var(--primary)}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;height:16px;flex-shrink:0}
+.kpi-label{font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0;transition:background .4s}
+.kpi-val-row{display:flex;align-items:baseline;gap:4px;height:32px;flex-shrink:0}
+.kpi-val{font-family:var(--font-mono);font-size:1.5rem;font-weight:500;line-height:1;color:var(--text)}
+.kpi-unit{font-size:.68rem;color:var(--faint)}
+.spark-wrap{position:relative;height:40px;flex-shrink:0;margin-top:auto}
+.kpi-sparkline{height:40px!important;max-height:40px}
 
-        nav { flex: 1; padding: 0 12px; }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 14px 20px;
-            border-radius: var(--radius-control);
-            text-decoration: none;
-            color: var(--color-text-muted);
-            font-size: 0.95rem;
-            font-weight: 500;
-            margin-bottom: 4px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        .nav-item:hover { background-color: var(--color-surface-offset); color: var(--color-text); }
-        .nav-item.active { background-color: var(--color-primary); color: var(--sand-0); }
-        .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-4)}
+.chart-card{height:240px;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:14px 14px 10px;display:flex;flex-direction:column}
+.chart-head{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;margin-bottom:8px;height:20px}
+.chart-title{font-size:.76rem;font-weight:600;color:var(--muted)}
+.chart-legend{display:flex;gap:10px}
+.leg{display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:.6rem;color:var(--faint)}
+.leg-line{width:16px;height:2px;border-radius:1px;flex-shrink:0}
+.canvas-wrap{position:relative;flex:1;min-height:0}
+.chart-card canvas{max-height:200px}
 
-        .sidebar-bottom { padding: 0 12px; margin-top: auto; }
-        .connection-card {
-            background: var(--color-surface-offset);
-            border-radius: var(--radius-inner);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .conn-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--color-text-muted); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #666; }
-        .dot.online { background: #2ECC71; box-shadow: 0 0 12px rgba(46, 204, 113, 0.4); }
-        .mode-pill {
-            background: var(--color-surface);
-            padding: 8px;
-            border-radius: var(--radius-control);
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-align: center;
-            color: var(--color-primary);
-            letter-spacing: 0.5px;
-        }
+/* BOTTOM GRID */
+.bottom-grid{display:grid;grid-template-columns:1fr 300px;gap:var(--space-3)}
+.ctrl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
+.ctrl-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border)}
+.ctrl-title{font-size:.82rem;font-weight:600}
+.m-chip{font-family:var(--font-mono);font-size:.6rem;font-weight:600;padding:3px 8px;border-radius:var(--r-sm);text-transform:uppercase;letter-spacing:.4px;cursor:pointer;border:none;transition:opacity .15s}
+.m-chip:hover{opacity:.8}
+.m-chip.auto{background:rgba(26,107,94,.2);color:var(--primary)}
+.m-chip.manuel{background:rgba(140,115,85,.2);color:var(--accent)}
+.m-chip.sim{background:rgba(212,160,23,.2);color:var(--warn)}
+.act-list{padding:5px 8px}
+.act-row{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:var(--r-md);transition:background .15s;position:relative}
+.act-row:hover{background:var(--off)}
+.act-row.locked{opacity:.5;pointer-events:none}
+.act-icon{width:28px;height:28px;flex-shrink:0;background:var(--off);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.act-icon svg{width:13px;height:13px;color:var(--muted);transition:color .2s}
+.act-icon.on{background:rgba(26,107,94,.2)}
+.act-icon.on svg{color:var(--primary)}
+.act-meta{flex:1;min-width:0}
+.act-name{font-size:.78rem;font-weight:600}
+.act-state{font-family:var(--font-mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.4px}
+.act-state.on{color:var(--primary)}
+.act-state.off{color:var(--faint)}
+.switch{position:relative;display:inline-block;width:40px;height:20px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:var(--off);border:1px solid var(--border);border-radius:10px;transition:.3s}
+.slider::before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--faint);border-radius:50%;transition:.3s}
+input:checked+.slider{background:var(--primary);border-color:transparent}
+input:checked+.slider::before{transform:translateX(20px);background:#fff}
+input:disabled+.slider{cursor:not-allowed}
+.scenarios{padding:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.sc-btn{background:var(--off);border:1px solid var(--border);padding:8px 4px;border-radius:var(--r-md);color:var(--muted);font-size:.63rem;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;line-height:1.3}
+.sc-btn:hover{background:var(--s2);color:var(--text);border-color:var(--primary)}
+.sc-btn.active{background:var(--primary);color:#fff;border-color:transparent}
 
-        /* Main Viewport */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-            scroll-behavior: smooth;
-        }
+/* SENSOR PAGE */
+.sensor-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+.sensor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:16px;display:flex;flex-direction:column;gap:8px}
+.sensor-card-head{display:flex;align-items:center;justify-content:space-between}
+.sensor-card-title{font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.sensor-card-value{font-family:var(--font-mono);font-size:2rem;font-weight:500;display:flex;align-items:baseline;gap:6px}
+.sensor-card-unit{font-size:.8rem;color:var(--faint)}
+.sensor-card-info{display:flex;gap:12px;font-size:.7rem;color:var(--faint)}
+.sensor-card-info span{display:flex;align-items:center;gap:4px}
+.sensor-chart-wrap{height:120px;position:relative}
+.digital-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-top:var(--space-3)}
+.digital-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:16px;display:flex;align-items:center;gap:12px}
+.digital-indicator{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.digital-indicator.ok{background:rgba(46,204,113,.15);color:var(--ok)}
+.digital-indicator.alert{background:rgba(192,57,43,.15);color:var(--crit)}
+.digital-meta{flex:1}
+.digital-name{font-size:.82rem;font-weight:600}
+.digital-state{font-family:var(--font-mono);font-size:.7rem;color:var(--faint)}
 
-        /* Sticky Header */
-        header {
-            position: sticky;
-            top: 0;
-            height: 80px;
-            padding: 0 40px;
-            background: rgba(var(--color-bg-rgb), 0.88);
-            backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--color-border);
-            z-index: 900;
-        }
-        .header-title { font-size: 1.5rem; font-weight: 600; }
-        .header-controls { display: flex; align-items: center; gap: 24px; }
-        .update-tag { font-family: var(--font-body); font-size: 0.75rem; color: var(--color-text-faint); }
-        
-        .icon-btn {
-            background: var(--color-surface-offset);
-            border: 1px solid var(--color-border);
-            width: 40px; height: 40px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--color-text-muted);
-            transition: var(--trans-fast);
-            position: relative;
-        }
-        .icon-btn:hover { color: var(--color-text); border-color: var(--color-primary); }
-        .badge {
-            position: absolute; top: -4px; right: -4px;
-            background: var(--color-critical); color: white;
-            font-size: 10px; font-weight: 700;
-            width: 18px; height: 18px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
+/* ACTUATOR PAGE */
+.act-page-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+.act-page-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:16px;display:flex;align-items:center;gap:14px;transition:border-color .2s}
+.act-page-card:hover{border-color:var(--primary)}
+.act-page-icon{width:44px;height:44px;flex-shrink:0;background:var(--off);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.act-page-icon svg{width:20px;height:20px;color:var(--muted);transition:color .2s}
+.act-page-icon.on{background:rgba(26,107,94,.2)}
+.act-page-icon.on svg{color:var(--primary)}
+.act-page-meta{flex:1}
+.act-page-name{font-size:.9rem;font-weight:600}
+.act-page-state{font-family:var(--font-mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.4px}
+.act-page-state.on{color:var(--primary)}
+.act-page-state.off{color:var(--faint)}
+.switch-lg{position:relative;display:inline-block;width:50px;height:26px;flex-shrink:0}
+.switch-lg input{opacity:0;width:0;height:0}
+.slider-lg{position:absolute;cursor:pointer;inset:0;background:var(--off);border:1px solid var(--border);border-radius:13px;transition:.3s}
+.slider-lg::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--faint);border-radius:50%;transition:.3s}
+.switch-lg input:checked+.slider-lg{background:var(--primary);border-color:transparent}
+.switch-lg input:checked+.slider-lg::before{transform:translateX(24px);background:#fff}
+.switch-lg input:disabled+.slider-lg{cursor:not-allowed}
 
-        /* Alert Banner */
-        #alert-banner {
-            position: fixed;
-            top: 80px; left: var(--sidebar-width); right: 0;
-            z-index: 850;
-            padding: 12px 40px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: none;
-            text-align: center;
-            transition: all var(--trans-fast);
-        }
-        #alert-banner.critical { background: var(--cyprus-1); border-bottom: 1px solid var(--color-critical); color: var(--color-critical); display: block; animation: pulse-alert 2s infinite; }
-        #alert-banner.warning { background: var(--color-warning); color: var(--cyprus-1); display: block; }
-        @keyframes pulse-alert { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+/* HISTORY PAGE */
+.history-controls{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-4);flex-wrap:wrap}
+.time-btn{background:var(--off);border:1px solid var(--border);padding:6px 14px;border-radius:var(--r-md);color:var(--muted);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+.time-btn:hover{border-color:var(--primary);color:var(--text)}
+.time-btn.active{background:var(--primary);color:#fff;border-color:transparent}
+.sensor-select{background:var(--off);border:1px solid var(--border);padding:6px 12px;border-radius:var(--r-md);color:var(--text);font-family:var(--font-ui);font-size:.75rem;cursor:pointer;outline:none}
+.sensor-select option{background:var(--surface);color:var(--text)}
+.history-chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:16px;height:350px;display:flex;flex-direction:column;margin-bottom:var(--space-4)}
+.history-chart-wrap{flex:1;position:relative;min-height:0}
+.history-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
+.history-table table{width:100%;border-collapse:collapse;font-size:.75rem}
+.history-table th{background:var(--off);padding:10px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.5px}
+.history-table td{padding:8px 14px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:.72rem;color:var(--text)}
+.history-table tr:hover td{background:var(--off)}
 
-        /* Dashboard Container */
-        .content-container {
-            padding: 40px;
-            max-width: 1600px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
+/* FOOTER */
+footer{flex-shrink:0;padding:7px 20px;border-top:1px solid var(--border);background:var(--surface);display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.6rem;color:var(--faint)}
+body.fire-alert{animation:fborder 1.5s infinite}
+@keyframes fborder{0%,100%{box-shadow:inset 0 0 0 0 var(--crit)}50%{box-shadow:inset 0 0 0 6px rgba(192,57,43,.35)}}
+.ske{position:relative;overflow:hidden}
+.ske::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);animation:shim 1.6s infinite}
+@keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
-        /* KPI Grid - Double Bezel Architecture */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 24px;
-        }
-        .shell {
-            background: var(--color-surface-offset);
-            padding: 6px;
-            border-radius: var(--radius-outer);
-            border: 1px solid var(--color-border);
-            transition: var(--trans-fast);
-        }
-        .shell:hover { transform: translateY(-4px); border-color: var(--color-primary); }
-        
-        .core {
-            background: var(--color-surface);
-            border-radius: calc(var(--radius-outer) - 6px);
-            padding: 24px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            position: relative;
-        }
-        .kpi-label { font-size: 0.75rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .kpi-val-wrap { display: flex; align-items: baseline; gap: 6px; }
-        .kpi-val { font-family: var(--font-body); font-size: 1.75rem; font-weight: 600; color: var(--color-text); }
-        .kpi-unit { font-size: 0.8rem; color: var(--color-text-faint); }
-        .kpi-status { position: absolute; top: 24px; right: 24px; width: 10px; height: 10px; border-radius: 50%; }
-        .kpi-sparkline { height: 40px; margin-top: auto; pointer-events: none; }
-
-        /* Charts Grid */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-        }
-        .chart-box {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-outer);
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-        .chart-title { font-size: 1.1rem; font-weight: 600; color: var(--sand-3); }
-        .canvas-wrap { height: 300px; position: relative; }
-
-        /* Actuators Panel */
-        .panel {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-outer);
-            padding: 32px;
-        }
-        .panel-header { margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; }
-        .panel-title { font-size: 1.25rem; font-weight: 600; }
-        
-        .actuators-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 20px;
-        }
-        .act-card {
-            background: var(--color-surface-offset);
-            padding: 24px;
-            border-radius: var(--radius-inner);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid transparent;
-            transition: var(--trans-fast);
-        }
-        .act-card:not(.locked):hover { border-color: var(--color-primary); }
-        .act-info { display: flex; flex-direction: column; gap: 4px; }
-        .act-name { font-weight: 600; font-size: 1rem; }
-        .act-state { font-family: var(--font-body); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
-        .act-state.on { color: var(--color-primary); }
-        .act-state.off { color: var(--color-text-faint); }
-
-        /* Toggle Switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 56px;
-            height: 28px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--color-bg);
-            transition: .4s var(--ease-fluid);
-            border-radius: 34px;
-            border: 1px solid var(--color-border);
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 20px; width: 20px;
-            left: 3px; bottom: 3px;
-            background-color: var(--sand-4);
-            transition: .4s var(--ease-fluid);
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--color-primary); border-color: transparent; }
-        input:checked + .slider:before { transform: translateX(28px); background-color: white; }
-        
-        .act-card.locked { opacity: 0.5; position: relative; cursor: not-allowed; }
-        .act-card.locked::after {
-            content: "🔒 AUTO";
-            position: absolute; top: 12px; right: 12px;
-            font-size: 10px; font-weight: 700; color: var(--color-text-faint);
-        }
-
-        /* Simulation Panel */
-        #sim-panel {
-            background: var(--cyprus-2);
-            border: 2px solid var(--color-primary);
-            animation: slideUp var(--trans-slow);
-        }
-        .scenarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-        .sc-btn {
-            background: var(--color-surface-offset);
-            border: 1px solid var(--color-border);
-            padding: 16px;
-            border-radius: var(--radius-inner);
-            color: var(--color-text);
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: var(--trans-fast);
-            text-align: center;
-        }
-        .sc-btn:hover { transform: scale(1.02); background: var(--color-surface-2); }
-        .sc-btn.active { background: var(--color-primary); color: white; border-color: transparent; }
-
-        /* Footer */
-        footer {
-            margin-top: auto;
-            padding: 32px 40px;
-            border-top: 1px solid var(--color-border);
-            display: flex;
-            justify-content: space-between;
-            font-family: var(--font-body);
-            font-size: 0.75rem;
-            color: var(--color-text-faint);
-        }
-
-        /* Skeleton Loaders */
-        .skeleton { position: relative; overflow: hidden; }
-        .skeleton::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            animation: shimmer 2s infinite;
-        }
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-        /* Responsiveness */
-        @media (max-width: 1280px) {
-            .charts-grid { grid-template-columns: 1fr; }
-        }
-        
-        @media (max-width: 1024px) {
-            aside { width: 88px; }
-            .logo-text, .nav-item span, .connection-card, .sidebar-bottom { display: none; }
-            .logo-wrap { justify-content: center; padding: 0; }
-            .nav-item { justify-content: center; padding: 14px; margin: 0 8px; }
-            #alert-banner { left: 88px; }
-        }
-        
-        @media (max-width: 768px) {
-            aside { display: none; }
-            header { padding: 0 20px; }
-            .header-title { font-size: 1.2rem; }
-            .content-container { padding: 24px; }
-            #alert-banner { left: 0; }
-            .kpi-grid { grid-template-columns: 1fr 1fr; }
-        }
-
-        /* Fire Alert Pulsing Border */
-        body.fire-alert {
-            animation: fire-border 1.5s infinite;
-        }
-        @keyframes fire-border {
-            0% { box-shadow: inset 0 0 0 0px var(--color-critical); }
-            50% { box-shadow: inset 0 0 0 10px var(--color-critical); }
-            100% { box-shadow: inset 0 0 0 0px var(--color-critical); }
-        }
-    </style>
+/* RESPONSIVE */
+@media(max-width:1100px){
+  .kpi-row{grid-template-columns:repeat(3,1fr)}
+  .bottom-grid,.act-page-grid,.sensor-grid{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .hamburger{display:flex}
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .sensor-grid,.act-page-grid,.digital-grid{grid-template-columns:1fr}
+}
+@media(max-width:375px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .kpi-card{height:100px}
+  .kpi-val{font-size:1.2rem}
+}
+</style>
 </head>
-<body class="skeleton-active">
 
-    <!-- Sidebar -->
-    <aside id="sidebar">
-        <div class="logo-wrap">
-            <div class="logo-icon">
-                <svg viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,11 8,9 17,8Z"/></svg>
-            </div>
-            <div class="logo-text">GREENHOUSE</div>
+<body>
+<div class="overlay" id="overlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,11 8,9 17,8Z"/></svg>
+    </div>
+    <span class="sb-brand">SolarFlow</span>
+  </div>
+  <nav>
+    <a class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Tableau de bord</span>
+    </a>
+    <a class="nav-item" data-page="sensors" onclick="navigateTo('sensors')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <span>Capteurs</span>
+    </a>
+    <a class="nav-item" data-page="actuators" onclick="navigateTo('actuators')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M2 12h2m16 0h2M6.34 6.34 4.93 4.93M17.66 17.66l1.41 1.41M12 2v2m0 16v2"/></svg>
+      <span>Actionneurs</span>
+    </a>
+    <a class="nav-item" data-page="history" onclick="navigateTo('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Historique</span>
+    </a>
+  </nav>
+  <div class="sb-foot">
+    <div class="conn-card">
+      <div class="conn-row">
+        <div id="arduino-dot" class="dot"></div>
+        <span id="arduino-status-label">Hors ligne</span>
+      </div>
+      <div id="sys-mode" class="mode-badge">MODE: ---</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="header">
+    <div class="hd-left">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="hd-title" id="page-title">Tableau de bord</span>
+    </div>
+    <div class="hd-right">
+      <span class="upd-chip" id="last-update">MAJ: --:--:--</span>
+      <button class="icon-btn" id="theme-toggle" title="Theme">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="icon-btn" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div id="notif-badge" class="badge" style="display:none">0</div>
+      </button>
+    </div>
+  </header>
+
+  <div id="alert-banner"></div>
+
+  <div class="content">
+
+    <!-- ═══ PAGE: DASHBOARD ═══ -->
+    <section class="page active" id="page-dashboard">
+      <div class="kpi-row">
+        <div class="kpi-card ske" id="kpi-t"><div class="kpi-top"><span class="kpi-label">Temperature</span><span class="kpi-dot" id="dot-t"></span></div><div class="kpi-val-row"><span class="kpi-val">--.-</span><span class="kpi-unit">&deg;C</span></div><div class="spark-wrap"><canvas class="kpi-sparkline" id="spark-t"></canvas></div></div>
+        <div class="kpi-card ske" id="kpi-h"><div class="kpi-top"><span class="kpi-label">Hum. Air</span><span class="kpi-dot" id="dot-h"></span></div><div class="kpi-val-row"><span class="kpi-val">--.-</span><span class="kpi-unit">%</span></div><div class="spark-wrap"><canvas class="kpi-sparkline" id="spark-h"></canvas></div></div>
+        <div class="kpi-card ske" id="kpi-sol"><div class="kpi-top"><span class="kpi-label">Hum. Sol</span><span class="kpi-dot" id="dot-sol"></span></div><div class="kpi-val-row"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div><div class="spark-wrap"><canvas class="kpi-sparkline" id="spark-sol"></canvas></div></div>
+        <div class="kpi-card ske" id="kpi-co2"><div class="kpi-top"><span class="kpi-label">CO2</span><span class="kpi-dot" id="dot-co2"></span></div><div class="kpi-val-row"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div><div class="spark-wrap"><canvas class="kpi-sparkline" id="spark-co2"></canvas></div></div>
+        <div class="kpi-card ske" id="kpi-ldr"><div class="kpi-top"><span class="kpi-label">Luminosite</span><span class="kpi-dot" id="dot-ldr"></span></div><div class="kpi-val-row"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div><div class="spark-wrap"><canvas class="kpi-sparkline" id="spark-ldr"></canvas></div></div>
+        <div class="kpi-card ske" id="kpi-res"><div class="kpi-top"><span class="kpi-label">Reservoir</span><span class="kpi-dot" id="dot-res"></span></div><div class="kpi-val-row"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div><div class="spark-wrap"><canvas class="kpi-sparkline" id="spark-res"></canvas></div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card"><div class="chart-head"><span class="chart-title">Environnement  -  Temp &amp; Humidite</span><div class="chart-legend"><div class="leg"><div class="leg-line" style="background:#1A6B5E"></div>Temp</div><div class="leg"><div class="leg-line" style="background:repeating-linear-gradient(90deg,#8C7355 0,#8C7355 4px,transparent 4px,transparent 8px)"></div>Hum</div></div></div><div class="canvas-wrap"><canvas id="mainLineChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-head"><span class="chart-title">CO2  -  Zones Normal / Warning / Critical</span></div><div class="canvas-wrap"><canvas id="co2BarChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-head"><span class="chart-title">Ressources Hydriques  -  Reservoir</span></div><div class="canvas-wrap"><canvas id="resDoughnut"></canvas></div></div>
+        <div class="chart-card"><div class="chart-head"><span class="chart-title">Intensite Lumineuse</span></div><div class="canvas-wrap"><canvas id="ldrAreaChart"></canvas></div></div>
+      </div>
+      <div class="bottom-grid">
+        <div class="ctrl-card">
+          <div class="ctrl-head"><span class="ctrl-title">Controle des Actionneurs</span><button class="m-chip auto" id="mode-chip" onclick="toggleMode()" title="Cliquer pour changer de mode">AUTO</button></div>
+          <div class="act-list">
+            <div class="act-row locked" id="act-pompe"><div class="act-icon" id="icon-pompe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div><div class="act-meta"><div class="act-name">Pompe</div><div class="act-state off">Inactif</div></div><label class="switch"><input type="checkbox" id="ctrl-pompe" onchange="postCmd('POMPE_'+(this.checked?'ON':'OFF'))"><span class="slider"></span></label></div>
+            <div class="act-row locked" id="act-vanne"><div class="act-icon" id="icon-vanne"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div><div class="act-meta"><div class="act-name">Vanne</div><div class="act-state off">Inactif</div></div><label class="switch"><input type="checkbox" id="ctrl-vanne" onchange="postCmd('VANNE_'+(this.checked?'ON':'OFF'))"><span class="slider"></span></label></div>
+            <div class="act-row locked" id="act-vent"><div class="act-icon" id="icon-vent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></div><div class="act-meta"><div class="act-name">Ventilateur</div><div class="act-state off">Inactif</div></div><label class="switch"><input type="checkbox" id="ctrl-vent" onchange="postCmd('VENT_'+(this.checked?'ON':'OFF'))"><span class="slider"></span></label></div>
+            <div class="act-row locked" id="act-chauf"><div class="act-icon" id="icon-chauf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div><div class="act-meta"><div class="act-name">Chauffage</div><div class="act-state off">Inactif</div></div><label class="switch"><input type="checkbox" id="ctrl-chauf" onchange="postCmd('CHAUFF_'+(this.checked?'ON':'OFF'))"><span class="slider"></span></label></div>
+            <div class="act-row locked" id="act-ombre"><div class="act-icon" id="icon-ombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div><div class="act-meta"><div class="act-name">Ombrage</div><div class="act-state off">Inactif</div></div><label class="switch"><input type="checkbox" id="ctrl-ombre" onchange="postCmd('OMBRE_'+(this.checked?'ON':'OFF'))"><span class="slider"></span></label></div>
+          </div>
         </div>
-        
-        <nav>
-            <a href="#" class="nav-item active" aria-label="Tableau de bord">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                <span>Tableau de bord</span>
-            </a>
-            <a href="#" class="nav-item" aria-label="Capteurs">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                <span>Capteurs</span>
-            </a>
-            <a href="#" class="nav-item" aria-label="Actionneurs">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-                <span>Actionneurs</span>
-            </a>
-            <a href="#" class="nav-item" aria-label="Historique">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>Historique</span>
-            </a>
-        </nav>
-        
-        <div class="sidebar-bottom">
-            <div class="connection-card">
-                <div class="conn-status">
-                    <div id="arduino-dot" class="dot"></div>
-                    <span id="arduino-status-label">Connecté</span>
-                </div>
-                <div id="sys-mode" class="mode-pill">MODE: ---</div>
-            </div>
-        </div>
-    </aside>
+        <div class="ctrl-card" id="sim-panel"><div class="ctrl-head"><span class="ctrl-title">Scenarios</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--faint)">Simulation</span></div><div class="scenarios" id="scenario-list"></div></div>
+      </div>
+    </section>
 
-    <main>
-        <div id="alert-banner"></div>
-        
-        <header>
-            <div class="header-title" id="page-title">Tableau de bord</div>
-            <div class="header-controls">
-                <div class="update-tag" id="last-update">MAJ: --:--:--</div>
-                <button class="icon-btn" id="theme-toggle" aria-label="Toggle Theme">
-                    <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
-                <button class="icon-btn" aria-label="Notifications">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    <div id="notif-badge" class="badge" style="display:none;">0</div>
-                </button>
-            </div>
-        </header>
+    <!-- ═══ PAGE: CAPTEURS ═══ -->
+    <section class="page" id="page-sensors">
+      <div class="sensor-grid">
+        <div class="sensor-card" id="sc-t"><div class="sensor-card-head"><span class="sensor-card-title"> Temperature</span><span class="kpi-dot" id="sdot-t"></span></div><div class="sensor-card-value"><span id="sv-t">--.-</span><span class="sensor-card-unit">&deg;C</span></div><div class="sensor-card-info"><span>Seuil: 28&deg;C (warn) / 35&deg;C (crit)</span></div><div class="sensor-chart-wrap"><canvas id="schart-t"></canvas></div></div>
+        <div class="sensor-card" id="sc-h"><div class="sensor-card-head"><span class="sensor-card-title"> Humidite Air</span><span class="kpi-dot" id="sdot-h"></span></div><div class="sensor-card-value"><span id="sv-h">--.-</span><span class="sensor-card-unit">%</span></div><div class="sensor-card-info"><span>Seuil: 45% (warn) / 30% (crit)</span></div><div class="sensor-chart-wrap"><canvas id="schart-h"></canvas></div></div>
+        <div class="sensor-card" id="sc-sol"><div class="sensor-card-head"><span class="sensor-card-title"> Humidite Sol</span><span class="kpi-dot" id="sdot-sol"></span></div><div class="sensor-card-value"><span id="sv-sol">--</span><span class="sensor-card-unit">%</span></div><div class="sensor-card-info"><span>Seuil: 40% (warn) / 20% (crit)</span></div><div class="sensor-chart-wrap"><canvas id="schart-sol"></canvas></div></div>
+        <div class="sensor-card" id="sc-co2"><div class="sensor-card-head"><span class="sensor-card-title"> CO2</span><span class="kpi-dot" id="sdot-co2"></span></div><div class="sensor-card-value"><span id="sv-co2">--</span><span class="sensor-card-unit">%</span></div><div class="sensor-card-info"><span>Seuil: 60% (warn) / 80% (crit)</span></div><div class="sensor-chart-wrap"><canvas id="schart-co2"></canvas></div></div>
+        <div class="sensor-card" id="sc-ldr"><div class="sensor-card-head"><span class="sensor-card-title"> Luminosite</span><span class="kpi-dot" id="sdot-ldr"></span></div><div class="sensor-card-value"><span id="sv-ldr">--</span><span class="sensor-card-unit">%</span></div><div class="sensor-card-info"><span>Seuil: 90% (warn)</span></div><div class="sensor-chart-wrap"><canvas id="schart-ldr"></canvas></div></div>
+        <div class="sensor-card" id="sc-res"><div class="sensor-card-head"><span class="sensor-card-title"> Reservoir</span><span class="kpi-dot" id="sdot-res"></span></div><div class="sensor-card-value"><span id="sv-res">--</span><span class="sensor-card-unit">%</span></div><div class="sensor-card-info"><span>Seuil: 30% (warn) / 15% (crit)</span></div><div class="sensor-chart-wrap"><canvas id="schart-res"></canvas></div></div>
+      </div>
+      <div class="digital-grid">
+        <div class="digital-card"><div class="digital-indicator ok" id="di-pluie">~</div><div class="digital-meta"><div class="digital-name">Capteur Pluie</div><div class="digital-state" id="ds-pluie">Pas de pluie</div></div></div>
+        <div class="digital-card"><div class="digital-indicator ok" id="di-flamme"></div><div class="digital-meta"><div class="digital-name">Capteur Flamme</div><div class="digital-state" id="ds-flamme">Normal</div></div></div>
+      </div>
+    </section>
 
-        <div class="content-container">
-            
-            <!-- KPI Row -->
-            <div class="kpi-grid">
-                <!-- Temp -->
-                <div class="shell skeleton">
-                    <div class="core" id="kpi-t">
-                        <div class="kpi-label">Température</div>
-                        <div class="kpi-val-wrap"><span class="kpi-val">--.-</span><span class="kpi-unit">°C</span></div>
-                        <div class="kpi-status" style="background:#2ecc71"></div>
-                        <canvas class="kpi-sparkline" id="spark-t"></canvas>
-                    </div>
-                </div>
-                <!-- Hum Air -->
-                <div class="shell skeleton">
-                    <div class="core" id="kpi-h">
-                        <div class="kpi-label">Humidité Air</div>
-                        <div class="kpi-val-wrap"><span class="kpi-val">--.-</span><span class="kpi-unit">%</span></div>
-                        <div class="kpi-status" style="background:#2ecc71"></div>
-                        <canvas class="kpi-sparkline" id="spark-h"></canvas>
-                    </div>
-                </div>
-                <!-- Soil -->
-                <div class="shell skeleton">
-                    <div class="core" id="kpi-sol">
-                        <div class="kpi-label">Humidité Sol</div>
-                        <div class="kpi-val-wrap"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div>
-                        <div class="kpi-status" style="background:#2ecc71"></div>
-                        <canvas class="kpi-sparkline" id="spark-sol"></canvas>
-                    </div>
-                </div>
-                <!-- CO2 -->
-                <div class="shell skeleton">
-                    <div class="core" id="kpi-co2">
-                        <div class="kpi-label">Dioxyde Carbone</div>
-                        <div class="kpi-val-wrap"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div>
-                        <div class="kpi-status" style="background:#2ecc71"></div>
-                        <canvas class="kpi-sparkline" id="spark-co2"></canvas>
-                    </div>
-                </div>
-                <!-- LDR -->
-                <div class="shell skeleton">
-                    <div class="core" id="kpi-ldr">
-                        <div class="kpi-label">Luminosité</div>
-                        <div class="kpi-val-wrap"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div>
-                        <div class="kpi-status" style="background:#2ecc71"></div>
-                        <canvas class="kpi-sparkline" id="spark-ldr"></canvas>
-                    </div>
-                </div>
-                <!-- Reservoir -->
-                <div class="shell skeleton">
-                    <div class="core" id="kpi-res">
-                        <div class="kpi-label">Niveau Réservoir</div>
-                        <div class="kpi-val-wrap"><span class="kpi-val">--</span><span class="kpi-unit">%</span></div>
-                        <div class="kpi-status" style="background:#2ecc71"></div>
-                        <canvas class="kpi-sparkline" id="spark-res"></canvas>
-                    </div>
-                </div>
-            </div>
+    <!-- ═══ PAGE: ACTIONNEURS ═══ -->
+    <section class="page" id="page-actuators">
+      <div class="act-page-grid" id="act-page-list">
+        <div class="act-page-card" id="ap-pompe"><div class="act-page-icon" id="api-pompe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div><div class="act-page-meta"><div class="act-page-name">Pompe d'irrigation</div><div class="act-page-state off" id="aps-pompe">Inactif</div></div><label class="switch-lg"><input type="checkbox" id="apc-pompe" onchange="postCmd('POMPE_'+(this.checked?'ON':'OFF'))"><span class="slider-lg"></span></label></div>
+        <div class="act-page-card" id="ap-vanne"><div class="act-page-icon" id="api-vanne"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div><div class="act-page-meta"><div class="act-page-name">Electrovanne</div><div class="act-page-state off" id="aps-vanne">Inactif</div></div><label class="switch-lg"><input type="checkbox" id="apc-vanne" onchange="postCmd('VANNE_'+(this.checked?'ON':'OFF'))"><span class="slider-lg"></span></label></div>
+        <div class="act-page-card" id="ap-vent"><div class="act-page-icon" id="api-vent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></div><div class="act-page-meta"><div class="act-page-name">Ventilateur</div><div class="act-page-state off" id="aps-vent">Inactif</div></div><label class="switch-lg"><input type="checkbox" id="apc-vent" onchange="postCmd('VENT_'+(this.checked?'ON':'OFF'))"><span class="slider-lg"></span></label></div>
+        <div class="act-page-card" id="ap-chauf"><div class="act-page-icon" id="api-chauf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div><div class="act-page-meta"><div class="act-page-name">Chauffage</div><div class="act-page-state off" id="aps-chauf">Inactif</div></div><label class="switch-lg"><input type="checkbox" id="apc-chauf" onchange="postCmd('CHAUFF_'+(this.checked?'ON':'OFF'))"><span class="slider-lg"></span></label></div>
+        <div class="act-page-card" id="ap-ombre"><div class="act-page-icon" id="api-ombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div><div class="act-page-meta"><div class="act-page-name">Ombrage solaire</div><div class="act-page-state off" id="aps-ombre">Inactif</div></div><label class="switch-lg"><input type="checkbox" id="apc-ombre" onchange="postCmd('OMBRE_'+(this.checked?'ON':'OFF'))"><span class="slider-lg"></span></label></div>
+      </div>
+      <div style="margin-top:var(--space-4)">
+        <div class="ctrl-card"><div class="ctrl-head"><span class="ctrl-title">Mode actuel</span><button class="m-chip auto" id="mode-chip-2" onclick="toggleMode()" title="Cliquer pour changer de mode">AUTO</button></div></div>
+      </div>
+      <div style="margin-top:var(--space-3)">
+        <div class="ctrl-card"><div class="ctrl-head"><span class="ctrl-title">Scenarios de simulation</span><span style="font-family:var(--font-mono);font-size:.6rem;color:var(--faint)">Simulation</span></div><div class="scenarios" id="scenario-list-2"></div></div>
+      </div>
+    </section>
 
-            <!-- Charts Section -->
-            <div class="charts-grid">
-                <div class="chart-box">
-                    <div class="chart-title">Environnement en Temps Réel</div>
-                    <div class="canvas-wrap"><canvas id="mainLineChart"></canvas></div>
-                </div>
-                <div class="chart-box">
-                    <div class="chart-title">Distribution des Gaz (CO2)</div>
-                    <div class="canvas-wrap"><canvas id="co2BarChart"></canvas></div>
-                </div>
-                <div class="chart-box">
-                    <div class="chart-title">Ressources Hydriques</div>
-                    <div class="canvas-wrap"><canvas id="resDoughnut"></canvas></div>
-                </div>
-                <div class="chart-box">
-                    <div class="chart-title">Intensité Lumineuse</div>
-                    <div class="canvas-wrap"><canvas id="ldrAreaChart"></canvas></div>
-                </div>
-            </div>
+    <!-- ═══ PAGE: HISTORIQUE ═══ -->
+    <section class="page" id="page-history">
+      <div class="history-controls">
+        <button class="time-btn active" data-min="60" onclick="setHistoryRange(60,this)">1 heure</button>
+        <button class="time-btn" data-min="360" onclick="setHistoryRange(360,this)">6 heures</button>
+        <button class="time-btn" data-min="1440" onclick="setHistoryRange(1440,this)">24 heures</button>
+        <select class="sensor-select" id="history-sensor" onchange="loadHistory()">
+          <option value="t">Temperature</option>
+          <option value="h">Humidite Air</option>
+          <option value="sol">Humidite Sol</option>
+          <option value="co2">CO2</option>
+          <option value="ldr">Luminosite</option>
+          <option value="res">Reservoir</option>
+        </select>
+      </div>
+      <div class="history-chart-card">
+        <div class="chart-head"><span class="chart-title" id="history-chart-title">Historique  -  Temperature</span></div>
+        <div class="history-chart-wrap"><canvas id="historyChart"></canvas></div>
+      </div>
+      <div class="history-table">
+        <table><thead><tr><th>Horodatage</th><th>Valeur</th></tr></thead><tbody id="history-tbody"></tbody></table>
+      </div>
+    </section>
 
-            <!-- Actionneurs -->
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">Contrôle des Actionneurs</div>
-                </div>
-                <div class="actuators-grid">
-                    <div class="act-card" id="act-pompe">
-                        <div class="act-info">
-                            <span class="act-name">Pompe</span>
-                            <span class="act-state off">Inactif</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="ctrl-pompe" onchange="postCmd('POMPE_' + (this.checked?'ON':'OFF'))">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="act-card" id="act-vanne">
-                        <div class="act-info">
-                            <span class="act-name">Vanne</span>
-                            <span class="act-state off">Inactif</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="ctrl-vanne" onchange="postCmd('VANNE_' + (this.checked?'ON':'OFF'))">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="act-card" id="act-vent">
-                        <div class="act-info">
-                            <span class="act-name">Ventilateur</span>
-                            <span class="act-state off">Inactif</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="ctrl-vent" onchange="postCmd('VENT_' + (this.checked?'ON':'OFF'))">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="act-card" id="act-chauf">
-                        <div class="act-info">
-                            <span class="act-name">Chauffage</span>
-                            <span class="act-state off">Inactif</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="ctrl-chauf" onchange="postCmd('CHAUFF_' + (this.checked?'ON':'OFF'))">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="act-card" id="act-ombre">
-                        <div class="act-info">
-                            <span class="act-name">Ombrage</span>
-                            <span class="act-state off">Inactif</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="ctrl-ombre" onchange="postCmd('OMBRE_' + (this.checked?'ON':'OFF'))">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+  </div><!-- /content -->
 
-            <!-- Simulation Panel — always visible, scenario buttons control backend state -->
-            <div class="panel" id="sim-panel">
-                <div class="panel-header">
-                    <div class="panel-title">Scénarios de Simulation</div>
-                </div>
-                <div class="scenarios" id="scenario-list">
-                    <!-- Dynamic buttons -->
-                </div>
-            </div>
+  <footer>
+    <span id="footer-port">Port: --- | Baud: 9600</span>
+    <span>SolarFlow v1.0  -  Autonomous Solar Irrigation</span>
+    <span id="footer-uptime">Uptime: 00:00:00</span>
+  </footer>
+</div><!-- /main -->
 
-        </div>
+<script>
+const API = "http://localhost:5000";
+const socket = io(API);
+let theme='dark',alarmCount=0,lastBeepTime=0,lastAlarmState=false,activeScenario=0,historyMinutes=60;
+const TITLES={dashboard:'Tableau de bord',sensors:'Capteurs',actuators:'Actionneurs',history:'Historique'};
+const C={p:'#1A6B5E',acc:'#8C7355',warn:'#D4A017',crit:'#C0392B',grid:()=>theme==='dark'?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)',tick:()=>theme==='dark'?'#7A7469':'#8AADA8'};
+const TIP={backgroundColor:'#0F2420',titleColor:'#F0EDE5',bodyColor:'#B8B0A3',borderColor:'rgba(30,61,56,.5)',borderWidth:1,titleFont:{family:'IBM Plex Mono',size:11},bodyFont:{family:'IBM Plex Mono',size:11}};
+const BASE_OPTS={responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{...TIP,mode:'index',intersect:false}},scales:{x:{display:false},y:{grid:{color:C.grid()},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}}}};
 
-        <footer>
-            <div id="footer-port">Port: COM3 | Baud: 9600</div>
-            <div>Greenhouse Control System — v1.0.0</div>
-            <div id="footer-uptime">Uptime: 00:00:00</div>
-        </footer>
-    </main>
+// NAVIGATION
+function navigateTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+  document.getElementById('page-title').innerText=TITLES[page]||page;
+  if(page==='history')loadHistory();
+  closeSidebar();
+}
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+document.getElementById('overlay').addEventListener('click',closeSidebar);
 
-    <script>
-        const API = "http://localhost:5000";
-        const socket = io(API);
-        
-        // State
-        let currentTheme = 'dark';
-        let alarmCount = 0;
-        let lastBeepTime = 0;
-        let lastAlarmState = false;
-        let activeScenario = 0;
-        let sensorHistory = { t:[], h:[], sol:[], co2:[], ldr:[], res:[] };
-        
-        // --- 1. THEME LOGIC ---
-        const themeBtn = document.getElementById('theme-toggle');
-        themeBtn.addEventListener('click', () => {
-            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            document.getElementById('theme-icon').innerHTML = currentTheme === 'dark' 
-                ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
-                : '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-            updateAllCharts();
-        });
+// MODE TOGGLE
+let currentMode='AUTO';
+async function toggleMode(){
+  const newMode=currentMode==='AUTO'?'MANUEL':'AUTO';
+  await postCmd('MODE_'+newMode);
+  currentMode=newMode;
+  ['mode-chip','mode-chip-2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.className='m-chip '+(newMode==='MANUEL'?'manuel':'auto');el.innerText=newMode;}
+  });
+  // unlock/lock actuator rows immediately
+  const isManual=newMode==='MANUEL';
+  ['pompe','vanne','vent','chauf','ombre'].forEach(id=>{
+    const row=document.getElementById('act-'+id);const tog=document.getElementById('ctrl-'+id);
+    const apCtrl=document.getElementById('apc-'+id);
+    if(row)row.classList.toggle('locked',!isManual);
+    if(tog)tog.disabled=!isManual;
+    if(apCtrl)apCtrl.disabled=!isManual;
+  });
+}
 
-        // --- 2. CHARTING ---
-        const chartDefaults = {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { 
-                x: { display: false },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { font: { family: "'IBM Plex Mono'" } } }
-            }
-        };
 
-        const createSparkline = (id, color) => new Chart(document.getElementById(id), {
-            type: 'line',
-            data: { labels: Array(20).fill(''), datasets: [{ data: [], borderColor: color, borderWidth: 1.5, tension: 0.4, pointRadius: 0 }] },
-            options: { ...chartDefaults, scales: { x: { display: false }, y: { display: false } } }
-        });
+// THEME
+document.getElementById('theme-toggle').addEventListener('click',()=>{
+  theme=theme==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  document.getElementById('theme-icon').innerHTML=theme==='dark'?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>':'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  refreshCharts();
+});
 
-        const sparks = {
-            t: createSparkline('spark-t', '#1A6B5E'),
-            h: createSparkline('spark-h', '#8C7355'),
-            sol: createSparkline('spark-sol', '#1A6B5E'),
-            co2: createSparkline('spark-co2', '#D4A017'),
-            ldr: createSparkline('spark-ldr', '#8C7355'),
-            res: createSparkline('spark-res', '#1A6B5E')
-        };
+// SPARKLINES
+const mkSpark=(id,color)=>new Chart(document.getElementById(id),{type:'line',data:{labels:Array(20).fill(''),datasets:[{data:[],borderColor:color,borderWidth:1.5,tension:.4,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}});
+const sparks={t:mkSpark('spark-t',C.p),h:mkSpark('spark-h',C.acc),sol:mkSpark('spark-sol',C.p),co2:mkSpark('spark-co2',C.warn),ldr:mkSpark('spark-ldr',C.acc),res:mkSpark('spark-res',C.p)};
 
-        const mainLine = new Chart(document.getElementById('mainLineChart'), {
-            type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Temp', data: [], borderColor: '#1A6B5E', tension: 0.4, yAxisID: 'y' },
-                { label: 'Hum', data: [], borderColor: '#8C7355', tension: 0.4, borderDash:[5,5], yAxisID: 'y1' }
-            ]},
-            options: { ...chartDefaults, scales: { 
-                x: { display: true, grid: { display: false } },
-                y: { position: 'left', min: 0, max: 50 },
-                y1: { position: 'right', min: 0, max: 100, grid: { display: false } }
-            }}
-        });
+// SENSOR PAGE CHARTS
+const mkSensorChart=(id,color)=>new Chart(document.getElementById(id),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:color,backgroundColor:color+'12',fill:true,tension:.4,pointRadius:0,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:TIP},scales:{x:{display:false},y:{grid:{color:C.grid()},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}}}}});
+const sCharts={t:mkSensorChart('schart-t',C.p),h:mkSensorChart('schart-h',C.acc),sol:mkSensorChart('schart-sol',C.p),co2:mkSensorChart('schart-co2',C.warn),ldr:mkSensorChart('schart-ldr',C.acc),res:mkSensorChart('schart-res',C.p)};
 
-        const co2Bar = new Chart(document.getElementById('co2BarChart'), {
-            type: 'bar',
-            data: { labels: ['Normal', 'Warning', 'Critical'], datasets: [{ data: [0,0,0], backgroundColor: ['#1A6B5E', '#D4A017', '#C0392B'], borderRadius: 8 }] },
-            options: { ...chartDefaults, scales: { x: { display: true }, y: { beginAtZero: true, max: 100 } } }
-        });
+// DASHBOARD CHARTS
+const mainLine=new Chart(document.getElementById('mainLineChart'),{type:'line',data:{labels:[],datasets:[{label:'Temp &deg;C',data:[],borderColor:C.p,backgroundColor:'rgba(26,107,94,.06)',fill:true,tension:.4,yAxisID:'y',pointRadius:0},{label:'Hum %',data:[],borderColor:C.acc,borderDash:[5,4],fill:false,tension:.4,yAxisID:'y1',pointRadius:0}]},options:{...BASE_OPTS,scales:{x:{display:true,grid:{display:false},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}},y:{position:'left',min:0,max:50,grid:{color:C.grid()},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}},y1:{position:'right',min:0,max:100,grid:{display:false},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}}}}});
+const co2Bar=new Chart(document.getElementById('co2BarChart'),{type:'bar',data:{labels:['Normal','Warning','Critical'],datasets:[{data:[0,0,0],backgroundColor:[C.p,C.warn,C.crit],borderRadius:5,borderSkipped:false}]},options:{...BASE_OPTS,scales:{x:{display:true,grid:{display:false},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}},y:{beginAtZero:true,max:100,grid:{color:C.grid()},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}}}}});
+const resDoughnut=new Chart(document.getElementById('resDoughnut'),{type:'doughnut',data:{labels:['Rempli','Vide'],datasets:[{data:[0,100],backgroundColor:[C.p,'#132B27'],borderWidth:0,cutout:'78%'}]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false},tooltip:TIP}}});
+const ldrArea=new Chart(document.getElementById('ldrAreaChart'),{type:'line',data:{labels:[],datasets:[{data:[],fill:true,backgroundColor:'rgba(26,107,94,.07)',borderColor:C.p,tension:.4,pointRadius:0}]},options:{...BASE_OPTS,scales:{x:{display:true,grid:{display:false},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}},y:{min:0,max:100,grid:{color:C.grid()},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}}}}});
 
-        const resDoughnut = new Chart(document.getElementById('resDoughnut'), {
-            type: 'doughnut',
-            data: { labels: ['Rempli', 'Vide'], datasets: [{ data: [0, 100], backgroundColor: ['#1A6B5E', '#132B27'], borderWidth: 0, cutout: '80%' }] },
-            options: { ...chartDefaults, scales: { x: { display: false }, y: { display: false } } }
-        });
+// HISTORY CHART
+const historyChart=new Chart(document.getElementById('historyChart'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:C.p,backgroundColor:'rgba(26,107,94,.1)',fill:true,tension:.3,pointRadius:2,pointBackgroundColor:C.p,borderWidth:2}]},options:{...BASE_OPTS,scales:{x:{display:true,grid:{display:false},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9},maxTicksLimit:12}},y:{grid:{color:C.grid()},ticks:{color:C.tick(),font:{family:'IBM Plex Mono',size:9}}}}}});
 
-        const ldrArea = new Chart(document.getElementById('ldrAreaChart'), {
-            type: 'line',
-            data: { labels: [], datasets: [{ data: [], fill: true, backgroundColor: 'rgba(26, 107, 94, 0.1)', borderColor: '#1A6B5E', tension: 0.4 }] },
-            options: { ...chartDefaults, scales: { x: { display: true } } }
-        });
+function refreshCharts(){[mainLine,co2Bar,ldrArea,historyChart].forEach(c=>{['x','y','y1'].forEach(ax=>{if(c.options.scales?.[ax]?.ticks)c.options.scales[ax].ticks.color=C.tick();if(c.options.scales?.[ax]?.grid?.color!==undefined)c.options.scales[ax].grid.color=C.grid()});c.update('none')})}
 
-        function updateAllCharts() {
-            const gridColor = currentTheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-            const textColor = currentTheme === 'dark' ? '#F0EDE5' : '#0B1F1C';
-            [mainLine, co2Bar, resDoughnut, ldrArea].forEach(c => {
-                // Guard: doughnut has no y-axis scale
-                if(c.options.scales?.y?.grid) c.options.scales.y.grid.color = gridColor;
-                if(c.options.scales?.y?.ticks) c.options.scales.y.ticks.color = textColor;
-                c.update('none');
-            });
-        }
+// SOCKET
+socket.on('connect',()=>{document.getElementById('arduino-dot').classList.add('online');document.querySelectorAll('.kpi-card').forEach(el=>el.classList.remove('ske'))});
+socket.on('disconnect',()=>{document.getElementById('arduino-dot').classList.remove('online');document.getElementById('arduino-status-label').innerText='Hors ligne'});
 
-        // --- 3. DATA HANDLING ---
-        socket.on('connect', () => {
-            console.log("Connected to Backend");
-            document.getElementById('arduino-dot').classList.add('online');
-            document.body.classList.remove('skeleton-active');
-            document.querySelectorAll('.shell').forEach(s => s.classList.remove('skeleton'));
-        });
+socket.on('sensor_update',d=>{
+  // KPI
+  document.querySelector('#kpi-t .kpi-val').innerText=d.t.toFixed(1);
+  document.querySelector('#kpi-h .kpi-val').innerText=d.h.toFixed(1);
+  document.querySelector('#kpi-sol .kpi-val').innerText=d.sol;
+  document.querySelector('#kpi-co2 .kpi-val').innerText=d.co2;
+  document.querySelector('#kpi-ldr .kpi-val').innerText=d.ldr;
+  document.querySelector('#kpi-res .kpi-val').innerText=d.res;
 
-        socket.on('sensor_update', (data) => {
-            // Update KPIs
-            document.querySelector('#kpi-t .kpi-val').innerText = data.t.toFixed(1);
-            document.querySelector('#kpi-h .kpi-val').innerText = data.h.toFixed(1);
-            document.querySelector('#kpi-sol .kpi-val').innerText = data.sol;
-            document.querySelector('#kpi-co2 .kpi-val').innerText = data.co2;
-            document.querySelector('#kpi-ldr .kpi-val').innerText = data.ldr;
-            document.querySelector('#kpi-res .kpi-val').innerText = data.res;
+  // Sensor page values
+  document.getElementById('sv-t').innerText=d.t.toFixed(1);
+  document.getElementById('sv-h').innerText=d.h.toFixed(1);
+  document.getElementById('sv-sol').innerText=d.sol;
+  document.getElementById('sv-co2').innerText=d.co2;
+  document.getElementById('sv-ldr').innerText=d.ldr;
+  document.getElementById('sv-res').innerText=d.res;
 
-            // Sparklines logic
-            ['t', 'h', 'sol', 'co2', 'ldr', 'res'].forEach(key => {
-                sparks[key].data.datasets[0].data.push(data[key]);
-                if(sparks[key].data.datasets[0].data.length > 20) sparks[key].data.datasets[0].data.shift();
-                sparks[key].update('none');
-            });
+  // Digital sensors
+  const pluieOk=d.pluie===1;
+  document.getElementById('ds-pluie').innerText=pluieOk?'Pas de pluie':'Pluie detectee';
+  document.getElementById('di-pluie').className='digital-indicator '+(pluieOk?'ok':'alert');
+  const flammeOk=d.flamme===1;
+  document.getElementById('ds-flamme').innerText=flammeOk?'Normal':' FEU DETECTE';
+  document.getElementById('di-flamme').className='digital-indicator '+(flammeOk?'ok':'alert');
 
-            // Main Charts
-            const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            mainLine.data.labels.push(now);
-            mainLine.data.datasets[0].data.push(data.t);
-            mainLine.data.datasets[1].data.push(data.h);
-            if(mainLine.data.labels.length > 60) { mainLine.data.labels.shift(); mainLine.data.datasets[0].data.shift(); mainLine.data.datasets[1].data.shift(); }
-            mainLine.update('none');
+  // Sparklines + sensor charts
+  const ts=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  ['t','h','sol','co2','ldr','res'].forEach(k=>{
+    const ds=sparks[k].data.datasets[0];ds.data.push(d[k]);if(ds.data.length>20)ds.data.shift();sparks[k].update('none');
+    const sc=sCharts[k];sc.data.labels.push(ts);sc.data.datasets[0].data.push(d[k]);if(sc.data.labels.length>40){sc.data.labels.shift();sc.data.datasets[0].data.shift()}sc.update('none');
+  });
 
-            ldrArea.data.labels.push(now);
-            ldrArea.data.datasets[0].data.push(data.ldr);
-            if(ldrArea.data.labels.length > 60) { ldrArea.data.labels.shift(); ldrArea.data.datasets[0].data.shift(); }
-            ldrArea.update('none');
+  // Main charts
+  mainLine.data.labels.push(ts);mainLine.data.datasets[0].data.push(d.t);mainLine.data.datasets[1].data.push(d.h);
+  if(mainLine.data.labels.length>60){mainLine.data.labels.shift();mainLine.data.datasets.forEach(s=>s.data.shift())}mainLine.update('none');
+  co2Bar.data.datasets[0].data=[Math.min(d.co2,50),Math.max(0,Math.min(d.co2-50,30)),Math.max(0,d.co2-80)];co2Bar.update('none');
+  resDoughnut.data.datasets[0].data=[d.res,100-d.res];resDoughnut.data.datasets[0].backgroundColor=[d.res<15?C.crit:C.p,'#132B27'];resDoughnut.update('none');
+  ldrArea.data.labels.push(ts);ldrArea.data.datasets[0].data.push(d.ldr);if(ldrArea.data.labels.length>60){ldrArea.data.labels.shift();ldrArea.data.datasets[0].data.shift()}ldrArea.update('none');
 
-            resDoughnut.data.datasets[0].data = [data.res, 100 - data.res];
-            resDoughnut.data.datasets[0].backgroundColor = [data.res < 15 ? '#C0392B' : '#1A6B5E', '#132B27'];
-            resDoughnut.update('none');
+  updateDots(d);updateAlerts(d);updateActuators(d);
+  document.getElementById('sys-mode').innerText=`MODE: ${d.mode}`;
+  document.getElementById('last-update').innerText=`MAJ: ${ts}`;
+});
 
-            // CO2 bar chart: split current value into Normal/Warning/Critical zones
-            const cv = data.co2;
-            co2Bar.data.datasets[0].data = [
-                Math.min(cv, 50),
-                Math.max(0, Math.min(cv - 50, 30)),
-                Math.max(0, cv - 80)
-            ];
-            co2Bar.update('none');
+function updateDots(d){
+  const set=(id,col)=>{const e=document.getElementById(id);if(e)e.style.background=col};
+  set('dot-t',d.t>35?C.crit:d.t>28?C.warn:C.p);set('dot-h',d.h<30?C.crit:d.h<45?C.warn:C.p);
+  set('dot-sol',d.sol<20?C.crit:d.sol<40?C.warn:C.p);set('dot-co2',d.co2>80?C.crit:d.co2>60?C.warn:C.p);
+  set('dot-ldr',d.ldr>90?C.warn:C.p);set('dot-res',d.res<15?C.crit:d.res<30?C.warn:C.p);
+  // sensor page dots
+  set('sdot-t',d.t>35?C.crit:d.t>28?C.warn:C.p);set('sdot-h',d.h<30?C.crit:d.h<45?C.warn:C.p);
+  set('sdot-sol',d.sol<20?C.crit:d.sol<40?C.warn:C.p);set('sdot-co2',d.co2>80?C.crit:d.co2>60?C.warn:C.p);
+  set('sdot-ldr',d.ldr>90?C.warn:C.p);set('sdot-res',d.res<15?C.crit:d.res<30?C.warn:C.p);
+}
 
-            // Thresholds & UI
-            updateThresholds(data);
-            updateActuators(data);
-            
-            document.getElementById('sys-mode').innerText = `MODE: ${data.mode}`;
-            document.getElementById('last-update').innerText = `MAJ: ${now}`;
-        });
+function updateAlerts(d){
+  const banner=document.getElementById('alert-banner');
+  const isAlarm=d.flamme===0||d.t>35||d.res<15||d.co2>80;
+  let cls='',msg='';
+  if(d.flamme===0){cls='critical';msg=" ALERTE INCENDIE  -  EVACUATION ET VENTILATION D'URGENCE";document.body.classList.add('fire-alert');if(Date.now()-lastBeepTime>3000){beep();lastBeepTime=Date.now()}}
+  else if(d.t>35||d.res<15||d.co2>80){cls='warning';msg=" ATTENTION  -  SEUILS CRITIQUES DETECTES";document.body.classList.remove('fire-alert')}
+  else{document.body.classList.remove('fire-alert')}
+  banner.className=cls;banner.innerText=msg;
+  if(isAlarm&&!lastAlarmState){alarmCount++;const b=document.getElementById('notif-badge');b.innerText=alarmCount>9?'9+':alarmCount;b.style.display='flex'}
+  lastAlarmState=isAlarm;
+}
 
-        function updateThresholds(data) {
-            const banner = document.getElementById('alert-banner');
-            const body = document.body;
-            let status = 'ok';
-            let msg = '';
+function updateActuators(d){
+  const isManual=d.mode==='MANUEL';
+  const chip=document.getElementById('mode-chip');
+  chip.className='m-chip '+(d.mode==='SIM'?'sim':d.mode==='MANUEL'?'manuel':'auto');chip.innerText=d.mode;
+  const chip2=document.getElementById('mode-chip-2');
+  if(chip2){chip2.className='m-chip '+(d.mode==='SIM'?'sim':d.mode==='MANUEL'?'manuel':'auto');chip2.innerText=d.mode}
 
-            const isAlarm = (data.flamme === 0) || (data.t > 35 || data.res < 15 || data.co2 > 80);
+  ['pompe','vanne','vent','chauf','ombre'].forEach(id=>{
+    // Dashboard actuators
+    const row=document.getElementById(`act-${id}`);const tog=document.getElementById(`ctrl-${id}`);
+    const state=document.querySelector(`#act-${id} .act-state`);const icon=document.getElementById(`icon-${id}`);
+    const isOn=d[id]===1;
+    row.classList.toggle('locked',!isManual);tog.checked=isOn;tog.disabled=!isManual;
+    state.className='act-state '+(isOn?'on':'off');state.innerText=isOn?'Actif':'Inactif';
+    if(icon)icon.className='act-icon'+(isOn?' on':'');
 
-            if(data.flamme === 0) {
-                status = 'critical';
-                msg = "🔥 ALERTE INCENDIE — EVACUATION ET VENTILATION D'URGENCE";
-                body.classList.add('fire-alert');
-                // Beep at most once every 3 seconds to avoid hammering AudioContext
-                const now = Date.now();
-                if(now - lastBeepTime > 3000) { beep(); lastBeepTime = now; }
-            } else if (data.t > 35 || data.res < 15 || data.co2 > 80) {
-                status = 'warning';
-                msg = "⚠️ ATTENTION — SEUILS CRITIQUES DETECTES";
-                body.classList.remove('fire-alert');
-            } else {
-                body.classList.remove('fire-alert');
-            }
+    // Actuator page
+    const apIcon=document.getElementById(`api-${id}`);const apState=document.getElementById(`aps-${id}`);const apCtrl=document.getElementById(`apc-${id}`);
+    if(apIcon)apIcon.className='act-page-icon'+(isOn?' on':'');
+    if(apState){apState.className='act-page-state '+(isOn?'on':'off');apState.innerText=isOn?'Actif':'Inactif'}
+    if(apCtrl){apCtrl.checked=isOn;apCtrl.disabled=!isManual}
+  });
 
-            if(msg) {
-                banner.innerText = msg;
-                banner.className = status;
-                // Increment alarm count only on new alarm transition
-                if(!lastAlarmState) {
-                    alarmCount++;
-                    const badge = document.getElementById('notif-badge');
-                    badge.innerText = alarmCount > 9 ? '9+' : alarmCount;
-                    badge.style.display = 'flex';
-                }
-            } else {
-                banner.className = '';
-            }
-            lastAlarmState = isAlarm;
+  document.querySelectorAll('.sc-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.scenarioId===String(activeScenario)));
+}
 
-            // KPI status dots — all 6 sensors
-            document.querySelector('#kpi-t .kpi-status').style.background =
-                data.t > 35 ? '#C0392B' : data.t > 28 ? '#D4A017' : '#2ecc71';
-            document.querySelector('#kpi-h .kpi-status').style.background =
-                data.h < 30 ? '#C0392B' : data.h < 45 ? '#D4A017' : '#2ecc71';
-            document.querySelector('#kpi-sol .kpi-status').style.background =
-                data.sol < 20 ? '#C0392B' : data.sol < 40 ? '#D4A017' : '#2ecc71';
-            document.querySelector('#kpi-co2 .kpi-status').style.background =
-                data.co2 > 80 ? '#C0392B' : data.co2 > 60 ? '#D4A017' : '#2ecc71';
-            document.querySelector('#kpi-ldr .kpi-status').style.background =
-                data.ldr > 90 ? '#D4A017' : '#2ecc71';
-            document.querySelector('#kpi-res .kpi-status').style.background =
-                data.res < 15 ? '#C0392B' : data.res < 30 ? '#D4A017' : '#2ecc71';
-        }
+async function postCmd(cmd){
+  try{
+    await fetch(`${API}/api/command/${cmd}`,{method:'POST'});
+    if(cmd.startsWith('SCENARIO_')){activeScenario=parseInt(cmd.split('_')[1]);document.querySelectorAll('.sc-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.scenarioId===String(activeScenario)))}
+  }catch(e){console.error('Cmd fail',e)}
+}
 
-        function updateActuators(data) {
-            const isAuto = data.mode === 'AUTO';
-            ['pompe', 'vanne', 'vent', 'chauf', 'ombre'].forEach(id => {
-                const card = document.getElementById(`act-${id}`);
-                const toggle = document.getElementById(`ctrl-${id}`);
-                const state = document.querySelector(`#act-${id} .act-state`);
-                
-                if(isAuto) card.classList.add('locked');
-                else card.classList.remove('locked');
+// HISTORY
+function setHistoryRange(min,btn){
+  historyMinutes=min;
+  document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  loadHistory();
+}
 
-                const isOn = data[id] === 1;
-                toggle.checked = isOn;
-                state.innerText = isOn ? 'Actif' : 'Inactif';
-                state.className = 'act-state ' + (isOn ? 'on' : 'off');
-            });
+async function loadHistory(){
+  const sensor=document.getElementById('history-sensor').value;
+  const names={t:'Temperature',h:'Humidite Air',sol:'Humidite Sol',co2:'CO2',ldr:'Luminosite',res:'Reservoir'};
+  const units={t:'&deg;C',h:'%',sol:'%',co2:'%',ldr:'%',res:'%'};
+  document.getElementById('history-chart-title').innerText=`Historique  -  ${names[sensor]}`;
+  try{
+    const r=await fetch(`${API}/api/history?sensor=${sensor}&minutes=${historyMinutes}`);
+    const data=await r.json();
+    historyChart.data.labels=data.map(d=>new Date(d.timestamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
+    historyChart.data.datasets[0].data=data.map(d=>d.value);
+    historyChart.update('none');
+    const tbody=document.getElementById('history-tbody');
+    tbody.innerHTML=data.slice(-30).reverse().map(d=>`<tr><td>${new Date(d.timestamp).toLocaleString('fr-FR')}</td><td>${d.value} ${units[sensor]}</td></tr>`).join('');
+  }catch(e){console.error('History load fail',e)}
+}
 
-            // Show simulation panel when a non-NORMAL scenario is active (mode=SIM from backend)
-            const simPanel = document.getElementById('sim-panel');
-            simPanel.style.display = (data.mode === 'SIM' || data.scenario !== 'NORMAL') ? 'block' : 'none';
-
-            // Highlight the active scenario button
-            document.querySelectorAll('.sc-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.scenarioId === String(activeScenario));
-            });
-        }
-
-        // --- 4. COMMANDS ---
-        async function postCmd(cmd) {
-            try {
-                const res = await fetch(`${API}/api/command/${cmd}`, { method: 'POST' });
-                if(cmd.startsWith('SCENARIO_')) {
-                    activeScenario = parseInt(cmd.split('_')[1]);
-                }
-            } catch (e) { console.error("Cmd fail", e); }
-        }
-
-        // --- 5. INITIALIZATION ---
-        async function init() {
-            try {
-                const res = await fetch(`${API}/api/scenarios`);
-                const scenarios = await res.json();
-                const list = document.getElementById('scenario-list');
-                list.innerHTML = scenarios.map(s => `
-                    <button class="sc-btn" data-scenario-id="${s.id}" onclick="postCmd('SCENARIO_${s.id}')">${s.name}</button>
-                `).join('');
-            } catch (e) {}
-
-            setInterval(async () => {
-                try {
-                    const res = await fetch(`${API}/api/status`);
-                    const st = await res.json();
-                    document.getElementById('footer-port').innerText = `Port: ${st.port} | Baud: 9600`;
-                    document.getElementById('footer-uptime').innerText = `Uptime: ${formatTime(st.uptime_seconds)}`;
-                    document.getElementById('arduino-status-label').innerText = st.connected ? 'Connecté' : 'Hors Ligne';
-                    document.getElementById('arduino-dot').className = 'dot ' + (st.connected ? 'online' : '');
-                } catch(e) {}
-            }, 5000);
-        }
-
-        function formatTime(s) {
-            const h = Math.floor(s/3600);
-            const m = Math.floor((s%3600)/60);
-            const sec = s%60;
-            return [h,m,sec].map(v => v < 10 ? '0'+v : v).join(':');
-        }
-
-        // Web Audio Beep
-        let audioCtx;
-        function beep() {
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.connect(g); g.connect(audioCtx.destination);
-            o.type = "sawtooth"; o.frequency.value = 523.25; // C5
-            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            o.start(); o.stop(audioCtx.currentTime + 0.5);
-        }
-
-        init();
-    </script>
+// INIT
+async function init(){
+  try{
+    const r=await fetch(`${API}/api/scenarios`);const list=await r.json();
+    const html=list.map(s=>`<button class="sc-btn${s.id===0?' active':''}" data-scenario-id="${s.id}" onclick="postCmd('SCENARIO_${s.id}')">${s.name}</button>`).join('');
+    document.getElementById('scenario-list').innerHTML=html;
+    document.getElementById('scenario-list-2').innerHTML=html;
+  }catch(e){}
+  setInterval(async()=>{
+    try{
+      const r=await fetch(`${API}/api/status`);const s=await r.json();
+      document.getElementById('footer-port').innerText=`Port: ${s.port} | Baud: 9600`;
+      document.getElementById('footer-uptime').innerText=`Uptime: ${fmt(s.uptime_seconds)}`;
+      document.getElementById('arduino-status-label').innerText=s.connected?'Connecte':'Hors ligne';
+      document.getElementById('arduino-dot').className='dot '+(s.connected?'online':'');
+    }catch(e){}
+  },5000);
+}
+const fmt=s=>[Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(v=>String(v).padStart(2,'0')).join(':');
+let audioCtx;
+function beep(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type='sawtooth';o.frequency.value=880;g.gain.setValueAtTime(0.08,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);o.start();o.stop(audioCtx.currentTime+0.4)}
+init();
+</script>
 </body>
 </html>
