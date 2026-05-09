@@ -20,7 +20,7 @@ $shell = New-Object -ComObject WScript.Shell
 $sc    = $shell.CreateShortcut($lnk)
 
 $sc.TargetPath       = 'cmd.exe'
-$sc.Arguments        = '/c "' + $launcher + '"'
+$sc.Arguments        = '/k "' + $launcher + '"'
 $sc.WorkingDirectory = $projectRoot
 $sc.WindowStyle      = 1
 $sc.Description      = 'Launch SolarFlow Autonomous Irrigation Dashboard'
