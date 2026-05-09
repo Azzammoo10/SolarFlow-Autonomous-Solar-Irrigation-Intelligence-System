@@ -181,9 +181,11 @@ def serial_worker():
             while True:
                 if ser.in_waiting > 0:
                     line = ser.readline().decode('utf-8', errors='ignore').strip()
-                    if line.startswith('{'):
+                    start_idx = line.find('{')
+                    if start_idx != -1:
                         try:
-                            data = json.loads(line)
+                            json_str = line[start_idx:]
+                            data = json.loads(json_str)
                             latest_data = data
                             socketio.emit('sensor_update', data)
                             save_reading(data)
