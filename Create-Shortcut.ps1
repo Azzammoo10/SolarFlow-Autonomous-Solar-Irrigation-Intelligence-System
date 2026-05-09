@@ -1,31 +1,20 @@
-# Auto-detect project root (works on ANY PC, ANY path)
-$projectRoot = $PSScriptRoot
-$launcher    = Join-Path $projectRoot 'SolarFlow.cmd'
-$desktop     = [Environment]::GetFolderPath('Desktop')
-$lnk         = Join-Path $desktop 'SolarFlow.lnk'
+$WshShell = New-Object -ComObject WScript.Shell
+$Desktop = [System.Environment]::GetFolderPath("Desktop")
+$ShortcutPath = Join-Path $Desktop "SolarFlow.lnk"
+$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
 
-Write-Host ''
-Write-Host '  SolarFlow - Desktop Shortcut Creator' -ForegroundColor Cyan
-Write-Host "  Project: $projectRoot" -ForegroundColor Gray
-Write-Host ''
+# Chemin vers ton script .cmd
+$TargetPath = Join-Path $PSScriptRoot "SolarFlow.cmd"
 
-if (-not (Test-Path $launcher)) {
-    Write-Host '  ERROR: SolarFlow.cmd not found in project folder!' -ForegroundColor Red
-    Write-Host '  Make sure this script is inside the project directory.' -ForegroundColor Yellow
-    pause
-    exit 1
-}
+$Shortcut.TargetPath = "cmd.exe"
+# /c ferme la fenêtre après, /k la laisse ouverte. On utilise /k pour voir les logs du backend.
+$Shortcut.Arguments = "/k `"$TargetPath`""
+$Shortcut.WorkingDirectory = $PSScriptRoot
+$Shortcut.WindowStyle = 1 # Fenêtre normale
+$Shortcut.IconLocation = "shell32.dll, 14" # Icône d'un monde/réseau (très SolarFlow !)
+$Shortcut.Save()
 
-$shell = New-Object -ComObject WScript.Shell
-$sc    = $shell.CreateShortcut($lnk)
-
-$sc.TargetPath       = 'cmd.exe'
-$sc.Arguments        = '/k "' + $launcher + '"'
-$sc.WorkingDirectory = $projectRoot
-$sc.WindowStyle      = 1
-$sc.Description      = 'Launch SolarFlow Autonomous Irrigation Dashboard'
-$sc.IconLocation     = 'C:\Windows\System32\shell32.dll, 13'
-$sc.Save()
-
-Write-Host '  Shortcut created on Desktop: SolarFlow.lnk' -ForegroundColor Green
-Write-Host "  Points to: $launcher" -ForegroundColor Gray
+Write-Host "------------------------------------------------" -ForegroundColor Green
+Write-Host "  Raccourci cree avec succes sur le Bureau !" -ForegroundColor Green
+Write-Host "  Cible : $TargetPath" -ForegroundColor White
+Write-Host "------------------------------------------------"
