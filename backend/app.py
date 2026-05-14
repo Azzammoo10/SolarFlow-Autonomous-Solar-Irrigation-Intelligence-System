@@ -18,9 +18,13 @@ PORT = os.getenv("ARDUINO_PORT", "COM3")
 BAUD = int(os.getenv("BAUD_RATE", 9600))
 DB_NAME = os.getenv("DB_PATH", "greenhouse.db")
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend", static_url_path="")
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
 # Shared State
 latest_data = {}
@@ -181,6 +185,7 @@ def serial_worker():
             while True:
                 if ser.in_waiting > 0:
                     line = ser.readline().decode('utf-8', errors='ignore').strip()
+                    if line: print(f"DEBUG SERIAL: {line}") # Ligne de diagnostic
                     start_idx = line.find('{')
                     if start_idx != -1:
                         try:
@@ -302,4 +307,4 @@ if __name__ == '__main__':
     init_db()
     t = threading.Thread(target=serial_worker, daemon=True)
     t.start()
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=False, allow_unsafe_werkzeug=True)
